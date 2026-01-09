@@ -1,0 +1,29 @@
+# ============================================
+# Supabase Configuration Template - runnerpao
+# ============================================
+# คัดลอกเนื้อหานี้ไปสร้างไฟล์ .env ใหม่
+# ⚠️ อย่า commit ไฟล์ .env ลง Git!
+# ============================================
+
+# Supabase Project URL (รับจาก Settings > API)
+VITE_SUPABASE_URL=https://xxxxxxxxxxxxx.supabase.co
+
+# Supabase Anon Key (รับจาก Settings > API)
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.xxxxx...
+
+# ============================================
+# Optional: Table Configuration
+# ============================================
+# ใช้เฉพาะเมื่อต้องการเปลี่ยนชื่อ table (default: runners)
+# VITE_SUPABASE_RUNNERS_TABLE=runners
+
+# ============================================
+# วิธีใช้:
+# ============================================
+# 1. สร้างไฟล์ .env ใน root ของโปรเจ็ค
+# 2. คัดลอกเนื้อหาจากไฟล์นี้ไปใส่
+# 3. แก้ไข VITE_SUPABASE_URL และ VITE_SUPABASE_ANON_KEY ให้ตรงกับของคุณ
+# 4. Save ไฟล์
+# 5. รัน: npm run dev
+# ============================================
+

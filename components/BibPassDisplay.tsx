@@ -771,16 +771,16 @@ export const BibPassDisplay: React.FC<BibPassDisplayProps> = () => {
                 </p>
 
                 <div className="space-y-4">
-                  <Button onClick={handleSaveAsImage} className="w-full" loading={isSavingImage}>
+                  {/* <Button onClick={handleSaveAsImage} className="w-full" loading={isSavingImage}>
                     {isSavingImage
                       ? (isThai ? 'กำลังบันทึกรูปภาพ...' : 'Saving Image...')
                       : (isThai ? 'บันทึกเป็นรูปภาพ' : 'Save as Image')}
-                  </Button>
+                  </Button> */}
 
                   <Button onClick={handleLinkLINEAccount} className="w-full bg-green-600 hover:bg-green-700 text-white focus:ring-green-500">
                     {isThai ? 'กดรับผลวิ่งอัตโนมัติ' : 'Auto Receive Race Result'}
                   </Button>
-                  {<div className="border-t border-gray-700 pt-4">
+                  {/* {<div className="border-t border-gray-700 pt-4">
                     <h3 className="text-lg font-semibold mb-3 text-white">
                       {isThai ? 'เพิ่มลงในกระเป๋าเงิน' : 'Add to Wallet'}
                     </h3>
@@ -797,7 +797,7 @@ export const BibPassDisplay: React.FC<BibPassDisplayProps> = () => {
                           : (isThai ? 'เพิ่มลงใน Apple Wallet' : 'Add to Apple Wallet')}
                       </Button>
                     </div>
-                  </div>}
+                  </div>} */}
                 </div>
               </>
             );
