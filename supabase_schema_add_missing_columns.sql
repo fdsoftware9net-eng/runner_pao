@@ -25,13 +25,15 @@ ADD COLUMN IF NOT EXISTS note TEXT,
 ADD COLUMN IF NOT EXISTS top_50_no TEXT,
 ADD COLUMN IF NOT EXISTS pass_generated BOOLEAN DEFAULT false,
 ADD COLUMN IF NOT EXISTS google_jwt TEXT,
-ADD COLUMN IF NOT EXISTS apple_pass_url TEXT;
+ADD COLUMN IF NOT EXISTS apple_pass_url TEXT,
+ADD COLUMN IF NOT EXISTS runner_photo_url TEXT;
 
 -- เพิ่ม indexes สำหรับ columns ที่ใช้บ่อย
 CREATE INDEX IF NOT EXISTS idx_runners_gender ON runners(gender) WHERE gender IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_runners_age_category ON runners(age_category) WHERE age_category IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_runners_wave_start ON runners(wave_start) WHERE wave_start IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_runners_pass_generated ON runners(pass_generated);
+CREATE INDEX IF NOT EXISTS idx_runners_has_photo ON runners(runner_photo_url) WHERE runner_photo_url IS NOT NULL;
 
 -- เพิ่ม comments
 COMMENT ON COLUMN runners.name_on_bib IS 'ชื่อที่แสดงบน BIB (optional)';
@@ -52,6 +54,7 @@ COMMENT ON COLUMN runners.top_50_no IS 'เลขที่ TOP 50';
 COMMENT ON COLUMN runners.pass_generated IS 'สถานะการสร้าง pass';
 COMMENT ON COLUMN runners.google_jwt IS 'Google Wallet JWT token';
 COMMENT ON COLUMN runners.apple_pass_url IS 'Apple Wallet pass URL';
+COMMENT ON COLUMN runners.runner_photo_url IS 'URL ของรูปภาพนักวิ่ง';
 
 -- ตรวจสอบว่า columns ถูกเพิ่มสำเร็จ
 SELECT column_name, data_type, is_nullable

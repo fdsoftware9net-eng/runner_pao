@@ -354,7 +354,7 @@ export const updateWalletConfig = async (config: Omit<WalletConfig, 'created_at'
 };
 
 // New function to upload images to Supabase Storage
-export const uploadPassAsset = async (file: File): Promise<ApiResponse<string>> => {
+export const uploadPassAsset = async (file: File, bucketName: string = 'pass_assets'): Promise<ApiResponse<string>> => {
   try {
     const supabaseClient = getSupabaseClient();
 
@@ -375,8 +375,6 @@ export const uploadPassAsset = async (file: File): Promise<ApiResponse<string>> 
     const safeBaseName = sanitizedBase || 'upload';
     const fileName = `${Date.now()}_${safeBaseName}${extension}`;
 
-    const bucketName = 'pass_assets'; // Ensure this bucket exists in Supabase Storage
-
     const { data, error } = await supabaseClient.storage
       .from(bucketName)
       .upload(fileName, file, {
@@ -395,9 +393,14 @@ export const uploadPassAsset = async (file: File): Promise<ApiResponse<string>> 
 
     return { data: publicUrlData.publicUrl };
   } catch (error: any) {
-    console.error('Error uploading pass asset:', error);
+    console.error('Error uploading to bucket:', bucketName, error);
     return { error: error.message || 'Failed to upload image.' };
   }
+};
+
+// Helper function specifically for uploading runner photos
+export const uploadRunnerPhoto = async (file: File): Promise<ApiResponse<string>> => {
+  return uploadPassAsset(file, 'runner_photos');
 };
 
 /**

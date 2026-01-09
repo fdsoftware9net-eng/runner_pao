@@ -82,6 +82,7 @@ CREATE TABLE IF NOT EXISTS runners (
     top50 TEXT,
     colour_sign TEXT,
     qr TEXT,
+    runner_photo_url TEXT,
     
     -- Metadata
     metadata JSONB DEFAULT '{}'::jsonb
@@ -98,6 +99,7 @@ CREATE INDEX IF NOT EXISTS idx_runners_gender ON runners(gender) WHERE gender IS
 CREATE INDEX IF NOT EXISTS idx_runners_age_category ON runners(age_category) WHERE age_category IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_runners_wave_start ON runners(wave_start) WHERE wave_start IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_runners_pass_generated ON runners(pass_generated);
+CREATE INDEX IF NOT EXISTS idx_runners_has_photo ON runners(runner_photo_url) WHERE runner_photo_url IS NOT NULL;
 
 -- Add comments
 COMMENT ON TABLE runners IS 'เก็บข้อมูล runners ทั้งหมด รวมถึงข้อมูลส่วนตัว ผลการแข่งขัน และ pass information';

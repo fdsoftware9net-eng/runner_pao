@@ -26,6 +26,7 @@ export interface Runner {
   top50?: string; // TOP 50 information
   colour_sign?: string; // Color sign information
   qr?: string; // QR code URL
+  runner_photo_url?: string | null; // Runner photo URL
   pass_generated: boolean; // Indicates if a pass has been generated/sent
   google_jwt: string | null; // Re-added to match DB schema
   apple_pass_url: string | null; // Re-added to match DB schema

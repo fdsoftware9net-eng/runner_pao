@@ -38,6 +38,13 @@ export const BibPassDisplay: React.FC<BibPassDisplayProps> = () => {
   const [isAddingToAppleWallet, setIsAddingToAppleWallet] = useState(false);
   const [walletError, setWalletError] = useState<string | null>(null);
   const [isSavingImage, setIsSavingImage] = useState(false);
+  
+  // Photo upload states
+  const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
+  const [photoUploadSuccess, setPhotoUploadSuccess] = useState(false);
 
   // Ref for the container we want to capture
   const passContainerRef = useRef<HTMLDivElement>(null);
@@ -662,6 +669,95 @@ export const BibPassDisplay: React.FC<BibPassDisplayProps> = () => {
     window.location.href = lineUrl;
   }, [runner]);
 
+  const handlePhotoSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setPhotoUploadError('กรุณาเลือกไฟล์รูปภาพเท่านั้น');
+      return;
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setPhotoUploadError('ขนาดไฟล์ต้องไม่เกิน 5MB');
+      return;
+    }
+
+    setSelectedPhoto(file);
+    setPhotoUploadError(null);
+    setPhotoUploadSuccess(false);
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setPhotoPreview(event.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  }, []);
+
+  const handlePhotoUpload = useCallback(async () => {
+    if (!selectedPhoto || !runner?.id) return;
+
+    setIsUploadingPhoto(true);
+    setPhotoUploadError(null);
+    setPhotoUploadSuccess(false);
+
+    try {
+      // Import uploadRunnerPhoto (uses runner_photos bucket)
+      const { uploadRunnerPhoto } = await import('../services/supabaseService');
+      
+      // Upload to Supabase Storage (runner_photos bucket)
+      const uploadResult = await uploadRunnerPhoto(selectedPhoto);
+
+      if (uploadResult.error) {
+        setPhotoUploadError(uploadResult.error);
+        return;
+      }
+
+      if (uploadResult.data) {
+        // Update runner with photo URL
+        const updateResult = await updateRunnerService({
+          id: runner.id,
+          runner_photo_url: uploadResult.data,
+        });
+
+        if (updateResult.error) {
+          setPhotoUploadError(updateResult.error);
+          return;
+        }
+
+        // Update local runner state
+        setRunner({
+          ...runner,
+          runner_photo_url: uploadResult.data,
+        });
+
+        setPhotoUploadSuccess(true);
+        setSelectedPhoto(null);
+        setPhotoPreview(null);
+
+        // Show success message
+        setTimeout(() => {
+          setPhotoUploadSuccess(false);
+        }, 3000);
+      }
+    } catch (error: any) {
+      console.error('Photo upload error:', error);
+      setPhotoUploadError(error.message || 'เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ');
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  }, [selectedPhoto, runner]);
+
+  const handleRemovePhoto = useCallback(() => {
+    setSelectedPhoto(null);
+    setPhotoPreview(null);
+    setPhotoUploadError(null);
+    setPhotoUploadSuccess(false);
+  }, []);
+
   if (loading || !isSessionChecked) {
     return <div className="flex justify-center items-center min-h-screen"><LoadingSpinner message="Loading..." /></div>;
   }
@@ -780,6 +876,114 @@ export const BibPassDisplay: React.FC<BibPassDisplayProps> = () => {
                   <Button onClick={handleLinkLINEAccount} className="w-full bg-green-600 hover:bg-green-700 text-white focus:ring-green-500">
                     {isThai ? 'กดรับผลวิ่งอัตโนมัติ' : 'Auto Receive Race Result'}
                   </Button>
+
+                  {/* Photo Upload Section */}
+                  <div className="border-t border-gray-700 pt-4 mt-4">
+                    <h3 className="text-lg font-semibold mb-3 text-white">
+                      {isThai ? 'อัปโหลดรูปภาพ' : 'Upload Photo'}
+                    </h3>
+
+                    {/* Current Photo Display */}
+                    {runner.runner_photo_url && !photoPreview && (
+                      <div className="mb-4">
+                        <p className="text-sm text-gray-400 mb-2">
+                          {isThai ? 'รูปภาพปัจจุบัน:' : 'Current Photo:'}
+                        </p>
+                        <img
+                          src={runner.runner_photo_url}
+                          alt="Runner"
+                          className="w-32 h-32 object-cover rounded-lg border-2 border-gray-600"
+                        />
+                      </div>
+                    )}
+
+                    {/* Photo Preview */}
+                    {photoPreview && (
+                      <div className="mb-4">
+                        <p className="text-sm text-gray-400 mb-2">
+                          {isThai ? 'รูปภาพที่เลือก:' : 'Selected Photo:'}
+                        </p>
+                        <div className="relative inline-block">
+                          <img
+                            src={photoPreview}
+                            alt="Preview"
+                            className="w-32 h-32 object-cover rounded-lg border-2 border-blue-500"
+                          />
+                          <button
+                            onClick={handleRemovePhoto}
+                            className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-700 transition-colors"
+                            title={isThai ? 'ลบรูป' : 'Remove'}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Upload Area */}
+                    <div className="space-y-3">
+                      <label className="block">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handlePhotoSelect}
+                          className="hidden"
+                          id="photo-upload-input"
+                        />
+                        <div className="cursor-pointer border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-blue-500 transition-colors">
+                          <div className="flex flex-col items-center justify-center">
+                            <svg
+                              className="w-12 h-12 text-gray-400 mb-2"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                              />
+                            </svg>
+                            <p className="text-sm text-gray-400">
+                              {isThai ? 'คลิกเพื่อเลือกรูปภาพ' : 'Click to select photo'}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {isThai ? 'ขนาดไม่เกิน 5MB' : 'Max 5MB'}
+                            </p>
+                          </div>
+                        </div>
+                      </label>
+
+                      {/* Upload Button */}
+                      {selectedPhoto && (
+                        <Button
+                          onClick={handlePhotoUpload}
+                          className="w-full bg-blue-600 hover:bg-blue-700"
+                          loading={isUploadingPhoto}
+                          disabled={isUploadingPhoto}
+                        >
+                          {isUploadingPhoto
+                            ? (isThai ? 'กำลังอัปโหลด...' : 'Uploading...')
+                            : (isThai ? 'อัปโหลดรูปภาพ' : 'Upload Photo')}
+                        </Button>
+                      )}
+
+                      {/* Error Message */}
+                      {photoUploadError && (
+                        <p className="text-red-400 text-sm text-center">
+                          {photoUploadError}
+                        </p>
+                      )}
+
+                      {/* Success Message */}
+                      {photoUploadSuccess && (
+                        <p className="text-green-400 text-sm text-center">
+                          {isThai ? '✓ อัปโหลดสำเร็จ!' : '✓ Upload successful!'}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                   {/* {<div className="border-t border-gray-700 pt-4">
                     <h3 className="text-lg font-semibold mb-3 text-white">
                       {isThai ? 'เพิ่มลงในกระเป๋าเงิน' : 'Add to Wallet'}
